@@ -21,4 +21,4 @@ En este documento se retrataran las practicas empleadas al momento de aportar en
 - Toda funcion debera ser marcada como 'noexcept' cuando sea posible.
 - inline > static > constexpr > calificadores cv > tipo > const *.
 - La llave de apertura va en la misma linea de la declaracion. Ej: if(...) {
-- Los '#include' van preferiblemente en los archivo *.hpp.
+- Los '#include' van preferiblemente en los archivo *.cpp.
