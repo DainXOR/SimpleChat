@@ -2,60 +2,65 @@
 
 #include <iostream>
 #include <thread>
+#include <string>
 
-#define logl(x) std::cout << x << std::endl
-#define log(x) std::cout << x
-
-client::client() {
-	logl("Chat Client Started");
-}
+#define SERVER_LOG_LN(x) std::cout << x << std::endl
+#define SERVER_LOG(x) std::cout << x
 
 void client::connect(const char *address, unsigned short port) {
-	if (socket.connect(address, port) != sf::Socket::Done) {
-		logl("Could not connect to the server\n");
-	}
+	this->connectionState = socket.connect(address, port) == sf::Socket::Done;
+
+	if (this->connectionState) {
+		SERVER_LOG_LN("[INFO/CLIENT]: Connected to the server");
+	}	
 	else {
-		isConnected = true;
-		logl("Connected to the server\n");
+		SERVER_LOG_LN("[ERROR/CLIENT]: Could not connect to the server");
 	}
 }
+void client::disconnect() {
+	socket.disconnect();
+	connectionState = false;
+	SERVER_LOG_LN("Disconnected from the server\n");
+}
 
-void client::receivePackets(sf::TcpSocket *socket) {
-	while (true) {
-		if (socket->receive(lastPacket) == sf::Socket::Done) {
-			std::string receivedString;
-			std::string senderAddress;
-			unsigned short senderPort;
-			lastPacket >> receivedString >> senderAddress >> senderPort;
-			logl("From (" << senderAddress << ":" << senderPort << "): " << receivedString);
+bool client::isConnected() {
+	return this->connectionState;
+}
+
+void client::receivePacket(sf::TcpSocket *socket) {
+	while (connectionState) {
+		if (socket->receive(lastPacket) != sf::Socket::Done) {
+			SERVER_LOG_LN("[ERROR/CLIENT]: Failed to receive packet");
+			SERVER_LOG_LN("[WARN/CLIENT]: Socket might not be connected");
 		}
+	}
+	
+}
+void client::sendPacket(sf::Packet &packet) {
+	if (packet.getDataSize() <= 0)
+		return;
 
-		std::this_thread::sleep_for((std::chrono::milliseconds)250);
+	switch (socket.send(packet)) {
+		case sf::Socket::Done:
+			break;
+		case sf::Socket::Disconnected:
+			SERVER_LOG_LN("[ERROR/CLIENT]: Socket disconnected");
+			break;
+		case sf::Socket::Error:
+			SERVER_LOG_LN("[ERROR/CLIENT]: Socket error");
+			break;
+		case sf::Socket::Partial:
+			SERVER_LOG_LN("[ERROR/CLIENT]: Partial packet sent");
+			this->sendPacket(packet);
+			break;
+		default:
+			SERVER_LOG_LN("[ERROR/CLIENT]: Unknown error");
 	}
 }
-
-void client::sendPacket(sf::Packet &packet) {
-	if (packet.getDataSize() > 0 && socket.send(packet) != sf::Socket::Done) {
-		logl("Could not send packet");
-	}
+void client::getLatestPacket(sf::Packet &packet) {
+	packet = this->lastPacket;
 }
 
 void client::run() {
-	std::thread receptionThread(&client::receivePackets, this, &socket);
-
-	while (true) {
-		if (isConnected) {
-			std::string userInput;
-			std::getline(std::cin, userInput);
-
-			if (userInput.length() < 1)
-				continue;
-
-			sf::Packet packet;
-			packet << userInput << socket.getRemoteAddress().toString() << socket.getRemotePort();
-			sendPacket(packet);
-		}
-
-		std::this_thread::sleep_for((std::chrono::milliseconds)250);
-	}
+	std::thread receptionThread(&client::receivePacket, this, &socket);
 }

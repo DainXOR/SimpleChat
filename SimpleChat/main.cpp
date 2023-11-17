@@ -1,31 +1,43 @@
 #pragma once
 #include <iostream>
-#include <thread>
-#include <chrono>
-#include <SFML/Network.hpp>
 
-#include "server.hpp"
-#include "client.hpp"
+#include "chat.hpp"
+#include "user.hpp"
+#include "secrets.hpp"
+#include "logger.hpp"
 
 int main() {
     #ifdef NDEBUG
-    server serverNetwork(2525);
-    serverNetwork.run();
+    chat chatServer;
+    chatServer.run();
+
     #else
-    std::cout << "Enter the server address: ";
-    std::string serverAddress;
-    std::getline(std::cin, serverAddress);
+    user userClient;
 
-    std::cout << "Enter the server port: ";
-    std::string serverPort;
-    std::getline(std::cin, serverPort);
+    #endif // NDEBUG
 
-    client clientNetwork;
-    clientNetwork.connect(serverAddress.c_str(), std::stoi(serverPort));
-    clientNetwork.run();
-    #endif //  NDEBUG
-
-    
+    //
+    //std::cout << "Enter the server address: ";
+    //std::string serverAddress;
+    //std::getline(std::cin, serverAddress);
+    //
+    //std::cout << "Enter the server port: ";
+    //std::string serverPort;
+    //std::getline(std::cin, serverPort);
+    //
+    //std::cout << "Enter your username: ";
+    //std::string username;
+    //std::getline(std::cin, username);
+    //
+    //client clientNetwork;
+    //clientNetwork.connect(serverAddress.c_str(), std::stoi(serverPort));
+    //clientNetwork.run();
+    //std::string message = "Hello World";
+    //
+    //std::cout << message <<"\n";
+    //std::cout << (message = secrets::encrypt("Hello World", secrets::CAESAR, "25")) << "\n";
+    //std::cout << secrets::decrypt(message, secrets::CAESAR, "25") << "\n";
+    //
 	return 0;
 }
 
