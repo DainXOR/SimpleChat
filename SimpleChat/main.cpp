@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <string>
+#include <regex>
 
 #include "chat.hpp"
 #include "user.hpp"
@@ -8,13 +10,16 @@
 
 int main() {
     #ifdef NDEBUG
-    chat chatServer;
+    dsc::chat chatServer;
     chatServer.run();
 
     #else
-    user userClient;
+    dsc::user userClient;
 
     #endif // NDEBUG
+
+    // dsc::chat chatServer;
+    // chatServer.run();
 
     //
     //std::cout << "Enter the server address: ";

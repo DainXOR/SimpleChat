@@ -14,6 +14,12 @@ namespace dsc {
 		logger::addTrace(msg, level);
 		return result;
 	}
+	bool logger::msg(std::string msg, sender who) {
+		msg = logger::formatMessage(msg, who, VERBOSE);
+		bool result = logger::sendMessage(msg, VERBOSE);
+		logger::addTrace(msg, VERBOSE);
+		return result;
+	}
 	bool logger::info(std::string msg, sender who) {
 		msg = logger::formatMessage(msg, who, INFO);
 		bool result = logger::sendMessage(msg, INFO);
@@ -44,6 +50,17 @@ namespace dsc {
 		logger::addTrace(msg, FATAL);
 		logger::printTrace();
 		return result;
+	}
+
+	bool logger::user_l(std::string msg, sender who) {
+		return logger::log(msg, who, USER_LOW);
+	}
+	bool logger::user_m(std::string msg, sender who) {
+		return logger::log(msg, who, USER_MEDIUM);
+	}
+	bool logger::user_h(std::string msg, sender who) {
+		return logger::log(msg, who, USER_HIGH);
+
 	}
 
 	void logger::setLogLevel(severity level) {
@@ -127,7 +144,7 @@ namespace dsc {
 		return logger::severityNames[level];
 	}
 	std::string logger::getSeverityColor(severity level) {
-		return logger::severityColors[level];
+		return "\033[1;" + logger::severityColors[level] + "m";
 	}
 	std::string logger::getTimeStampColor() {
 		return logger::timeStampColor;
@@ -150,15 +167,27 @@ namespace dsc {
 			getMessageColor() + msg + resetColor() + "\n";
 	}
 
-	logger::severity logger::logLevel = WARNING;
+#ifdef _DEBUG
+	logger::severity logger::logLevel = DEBUG;
 	bool logger::recordTrace = true;
 	logger::severity logger::traceLevel = VERBOSE;
+#else
+	#ifdef NDEBUG
+	logger::severity logger::logLevel = WARNING;
+	bool logger::recordTrace = false;
+	logger::severity logger::traceLevel = ERROR;
+	#else
+	logger::severity logger::logLevel = INFO;
+	bool logger::recordTrace = true;
+	logger::severity logger::traceLevel = WARNING;
+	#endif // NDEBUG
+#endif // DEBUG
 
 	std::vector<std::string> logger::stackTrace = {};
 
 	const std::vector<std::string> logger::senderNames = { "CLIENT", "SERVER" };
-	const std::vector<std::string> logger::severityNames = { "INFO", "DEBUG", "WARNING", "ERROR", "FATAL" };
-	const std::vector<std::string> logger::severityColors = { "\033[1;36m", "\033[1;90m", "\033[1;33m", "\033[1;31m", "\033[1;31m" };
+	const std::vector<std::string> logger::severityNames = { "MSG", "DEBUG", "INFO", "WARNING", "INFO", "ERROR", "INFO", "FATAL"};
+	const std::vector<std::string> logger::severityColors = { "90", "94", "36", "33", "36", "31", "36", "31"};
 	const std::string logger::colorReset = "\033[21;0m";
 	const std::string logger::timeStampColor = "\033[4;35m";
 	const std::string logger::messageColor = "\033[3;97m";
@@ -167,11 +196,6 @@ namespace dsc {
 		return logger::builder();
 	}
 
-	logger::builder::builder() {
-		this->message = "";
-		this->who = logger::SERVER;
-		this->level = logger::INFO;
-	}
 
 	logger::builder logger::builder::add(std::string message) {
 		this->message += message;

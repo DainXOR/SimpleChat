@@ -9,11 +9,13 @@
 
 #include "user.hpp"
 
-chat::chat() {
-	this->serverNetwork = new server(sf::Socket::AnyPort);
-	std::cout << "Waiting for people to join...\n";
-}
+namespace dsc {
+	chat::chat() {
+		this->serverNetwork = new server(sf::Socket::AnyPort);
+		std::cout << "Waiting for people to join...\n";
+	}
 
-void chat::run() {
-	this->serverNetwork->run();
+	void chat::run() {
+		this->serverNetwork->run();
+	}
 }
