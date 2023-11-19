@@ -41,8 +41,8 @@ namespace dsc {
 		}
 		else if (answer == "create") {
 			this->serverNetwork = new server(sf::Socket::AnyPort);
+			this->serverNetwork->sendCommand("/start");
 			std::cout << "Waiting for people to join...\n";
-			this->serverNetwork->run();
 		}
 		else {
 			std::cout << "Invalid answer\n";

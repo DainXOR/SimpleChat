@@ -9,6 +9,8 @@
 #include "logger.hpp"
 
 int main() {
+    dsc::logger::setLogLevel(dsc::logger::VERBOSE);
+
     #ifdef NDEBUG
     dsc::chat chatServer;
     chatServer.run();

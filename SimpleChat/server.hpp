@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <thread>
+#include <queue>
 
 
 namespace dsc {
@@ -10,8 +11,15 @@ namespace dsc {
         sf::TcpListener listener;
         std::vector<sf::TcpSocket *> clientArray;
         unsigned short listenPort;
+        bool running;
 
+        std::thread *clientThread;
+        std::thread *packetThread;
+        std::thread *consoleThread;
+
+        std::queue<std::string> consoleQueue;
     public:
+
         server(unsigned short);
         std::string getIpAddress();
         unsigned short getPort();
@@ -29,8 +37,7 @@ namespace dsc {
 
         void managePackets();
         void listenConsole();
-
-        void run();
+        void sendCommand(std::string);
     };
 }
 

@@ -9,21 +9,12 @@
 
 namespace dsc {
     server::server(unsigned short port)
-        : listenPort(port) {
-        logger::msg("Starting server...", logger::SERVER);
+        : listenPort(port), running(true) {
+        this->clientThread = new std::thread(&server::connectClients, this, &clientArray);
+        this->packetThread = new std::thread(&server::managePackets, this);
+        this->consoleThread = new std::thread(&server::listenConsole, this);
 
-        if (listener.listen(listenPort) != sf::Socket::Done) {
-            logger::error("Failed to listen to port", logger::SERVER);
-            logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
-            logger::fatal("Server failed to start", logger::SERVER);
-            exit(1);
-        }
-
-        logger::info("Server started successfuly", logger::SERVER);
-
-        logger::user_m("Server ready", logger::SERVER);
-        logger::user_m("Address: " + this->getIpAddress(), logger::SERVER);
-        logger::user_m("Port: " + std::to_string(this->getPort()), logger::SERVER);
+        this->consoleThread->join();
     }
 
     std::string server::getIpAddress() {
@@ -34,29 +25,34 @@ namespace dsc {
     }
 
     void server::connectClients(std::vector<sf::TcpSocket *> *clientArray) {
-        while (true) {
-            sf::TcpSocket *newClient = new sf::TcpSocket();
-            if (listener.accept(*newClient) == sf::Socket::Done) {
-                newClient->setBlocking(false);
-                clientArray->push_back(newClient);
+        while (running) {
+            if (listener.getLocalPort() != 0) {
+                sf::TcpSocket *newClient = new sf::TcpSocket();
 
-                logger::buildMessage()
-					.add("Added client ")
-					.add(newClient->getRemoteAddress().toString())
-					.add(":")
-					.add(std::to_string(newClient->getRemotePort()))
-					.add(" on slot ")
-					.add(std::to_string(clientArray->size()))
-					.setSender(logger::SERVER)
-					.setSeverity(logger::DEBUG)
-					.log();
-            }
-            else {
-                logger::error("Server listener error, restart the server", logger::SERVER);
-                logger::user_h("An error has ocurred, please restart the server", logger::SERVER);
-                delete (newClient);
-                break;
-            }
+                if (listener.accept(*newClient) == sf::Socket::Done) {
+                    newClient->setBlocking(false);
+                    clientArray->push_back(newClient);
+
+                    logger::buildMessage()
+                        .add("Added client ")
+                        .add(newClient->getRemoteAddress().toString())
+                        .add(":")
+                        .add(std::to_string(newClient->getRemotePort()))
+                        .add(" on slot ")
+                        .add(std::to_string(clientArray->size()))
+                        .setSender(logger::SERVER)
+                        .setSeverity(logger::DEBUG)
+                        .log();
+                }
+                else {
+                    logger::error("Server listener error, restart the server", logger::SERVER);
+                    logger::user_m("An error has ocurred, please restart the server", logger::SERVER);
+                    delete (newClient);
+                    break;
+                }
+
+                sf::sleep(sf::milliseconds(250));
+			}
         }
     }
     void server::disconnectClient(sf::TcpSocket *socketPointer, size_t position) {
@@ -147,23 +143,32 @@ namespace dsc {
         return false;
     }
     void server::managePackets() {
-        size_t managedPackets = 0;
+        while (running) {
+            if (listener.getLocalPort() != 0) {
+                size_t managedPackets = 0;
 
-        for (size_t i = 0; i < clientArray.size(); i++) {
-            managedPackets += receivePacket(clientArray[i], i);
+                for (size_t i = 0; i < clientArray.size(); i++) {
+                    managedPackets += receivePacket(clientArray[i], i);
+                }
+
+                logger::buildMessage()
+                    .add("Managed ")
+                    .add(std::to_string(managedPackets))
+                    .add(" packets")
+                    .setSender(logger::SERVER)
+                    .setSeverity(logger::DEBUG)
+                    .log();
+
+                sf::sleep(sf::milliseconds(250));
+			}
         }
-
-        logger::buildMessage()
-			.add("Managed ")
-			.add(std::to_string(managedPackets))
-			.add(" packets")
-			.setSender(logger::SERVER)
-			.setSeverity(logger::DEBUG)
-			.log();
     }
     void server::listenConsole() {
+        logger::user_l("Server online", logger::SERVER);
+
         std::string userInput = "";
         std::regex commands[] = {
+            std::regex("^\/start( -p [0-9]{1,5})?$"),
             std::regex("/exit"),
             std::regex("/stop"),
             std::regex("^\/restart( -p [0-9]{1,5})?$"),
@@ -176,22 +181,68 @@ namespace dsc {
 
         while (userInput != "/exit") {
 			std::getline(std::cin, userInput);
+            sendCommand(userInput);
+            userInput = consoleQueue.front();
+            consoleQueue.pop();
 
-            if (userInput == "/exit") {
-                logger::user_h("Exiting...", logger::SERVER);
-                logger::user_h("Stopping server...", logger::SERVER);
+            if (std::regex_match(userInput, commands[0])) {
+				logger::user_m("Starting server...", logger::SERVER);
+
+                userInput.erase(0, 9);
+
+                this->listenPort = userInput.length() > 0 ? 
+                    std::stoi(userInput) : this->listenPort;
+
+                if (this->listenPort < 0 || this->listenPort > 65535) {
+                    logger::error("Invalid port", logger::SERVER);
+                    logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+                    logger::user_m("Server failed to start", logger::SERVER);
+                    continue;
+                }
+
+                sf::Socket::Status listenStatus = listener.listen(this->listenPort);
+                if (listenStatus == sf::Socket::Done) {
+                    this->running = true;
+
+                    logger::user_m("Server ready", logger::SERVER);
+                    logger::user_m("Address: " + this->getIpAddress(), logger::SERVER);
+                    logger::user_m("Port: " + std::to_string(this->getPort()), logger::SERVER);
+                }
+                else {
+                    switch (listenStatus) {
+                        case sf::Socket::NotReady:
+                            logger::error("Socket not ready", logger::SERVER);
+                            break;
+                        case sf::Socket::Disconnected:
+                            logger::error("Socket disconnected", logger::SERVER);
+                            break;
+                        case sf::Socket::Error:
+                            logger::error("Failed to listen to port", logger::SERVER);
+                            break;
+                        default:
+                            logger::error("Unknown error", logger::SERVER);
+                            break;
+                    }
+                    logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+                    logger::user_m("Server failed to restart", logger::SERVER);
+                }
+			}
+            else if (userInput == "/exit") {
+                logger::user_m("Exiting...", logger::SERVER);
+                logger::user_m("Stopping server...", logger::SERVER);
                 disconnectAllClients();
+                this->running = false;
                 listener.close();
-                logger::user_h("Server stopped", logger::SERVER);
+                logger::user_m("Server stopped", logger::SERVER);
             }
             else if (userInput == "/stop") {
-				logger::user_h("Stopping server...", logger::SERVER);
+				logger::user_m("Stopping server...", logger::SERVER);
                 disconnectAllClients();
 				listener.close();
-				logger::user_h("Server stopped", logger::SERVER);
+				logger::user_m("Server stopped", logger::SERVER);
 			}
-            else if (std::regex_match(userInput, commands[2])) {
-                logger::user_h("Restarting server...", logger::SERVER);
+            else if (std::regex_match(userInput, commands[3])) {
+                logger::user_m("Restarting server...", logger::SERVER);
             	
                 if (listener.getLocalPort() != 0) {
                     disconnectAllClients();
@@ -199,18 +250,44 @@ namespace dsc {
                 }
 
                 userInput.erase(0, 12);
-                this->listenPort = userInput.size() > 0 ?
-                    std::stoi(userInput) : 0;
+                this->listenPort = 0;
 
-                if (listener.listen(listenPort) != sf::Socket::Done) {
-                    logger::error("Failed to listen to port", logger::SERVER);
-                    logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+                if (userInput.length() > 0) {
+                    this->listenPort = std::stoi(userInput);
+
+                    if (this->listenPort < 0 || this->listenPort > 65535) {
+						logger::error("Invalid port", logger::SERVER);
+						logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+						logger::user_m("Server failed to restart", logger::SERVER);
+						continue;
+					}
+				}
+
+                sf::Socket::Status listenStatus = listener.listen(this->listenPort);
+                if (listenStatus == sf::Socket::Done) {
+                    logger::user_m("Server ready", logger::SERVER);
+                    logger::user_m("Address: " + this->getIpAddress(), logger::SERVER);
+                    logger::user_m("Port: " + std::to_string(this->getPort()), logger::SERVER);
                 }
                 else {
-					logger::user_h("Server ready", logger::SERVER);
-					logger::user_h("Address: " + this->getIpAddress(), logger::SERVER);
-					logger::user_h("Port: " + std::to_string(this->getPort()), logger::SERVER);
-				}
+                    switch (listenStatus) {
+                        case sf::Socket::NotReady:
+                            logger::error("Socket not ready", logger::SERVER);
+                            break;
+                        case sf::Socket::Disconnected:
+                            logger::error("Socket disconnected", logger::SERVER);
+                            break;
+                        case sf::Socket::Error:
+                            logger::error("Failed to listen to port", logger::SERVER);
+                            break;
+                        default:
+                            logger::error("Unknown error", logger::SERVER);
+                            break;
+                    }
+                    logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+                    logger::user_m("Server failed to restart", logger::SERVER);
+                }
+                
             }
             else if (userInput == "/clients") {
 				logger::user_h("Connected clients:", logger::SERVER);
@@ -228,10 +305,14 @@ namespace dsc {
 			}
             else if (userInput == "/help") {
 				logger::user_h("Available commands:", logger::SERVER);
-				logger::user_h("/stop - Stops the server", logger::SERVER);
-				logger::user_h("/clients - Lists connected clients", logger::SERVER);
-				logger::user_h("/packets - Lists managed packets", logger::SERVER);
-				logger::user_h("/help - Shows this message", logger::SERVER);
+                logger::user_h("/start -p [port] - Starts the server on the specified port", logger::SERVER);
+                logger::user_h("/stop - Stops the server", logger::SERVER);
+                logger::user_h("/restart -p [port] - Restarts the server on the specified port", logger::SERVER);
+                logger::user_h("/clients - Lists all connected clients", logger::SERVER);
+                logger::user_h("/packets - Lists all managed packets", logger::SERVER);
+                logger::user_h("/kick -a [address] -p [port] - Kicks the specified client", logger::SERVER);
+                logger::user_h("/ban -a [address] -p [port] - Bans the specified client", logger::SERVER);
+                logger::user_h("/help - Shows this message", logger::SERVER);
 			}
             else if (std::regex_match(userInput, commands[6])) {
                 userInput.replace(0, 6, ""); 
@@ -315,13 +396,13 @@ namespace dsc {
             else {
 				logger::user_h("Unknown command, type /help for a list of commands", logger::SERVER);
 			}
+
+
 		}
     }
 
-    void server::run() {
-        std::thread packetManagerThread(&server::connectClients, this, &clientArray);
-        std::thread clientConnectionThread(&server::managePackets, this);
-        this->listenConsole();
-        
+    void server::sendCommand(std::string command) {
+    	this->consoleQueue.push(command);
     }
+
 }
