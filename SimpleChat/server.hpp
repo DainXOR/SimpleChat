@@ -13,9 +13,9 @@ namespace dsc {
         unsigned short listenPort;
         bool running;
 
-        std::thread *clientThread;
-        std::thread *packetThread;
-        std::thread *consoleThread;
+        //std::thread *clientThread;
+        //std::thread *packetThread;
+        //std::thread *consoleThread;
 
         std::queue<std::string> consoleQueue;
     public:
@@ -40,6 +40,7 @@ namespace dsc {
         void sendCommand(std::string);
 
         void run();
+        ~server();
     };
 }
 

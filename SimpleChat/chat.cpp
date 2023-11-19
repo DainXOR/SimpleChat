@@ -15,7 +15,7 @@ namespace dsc {
 	}
 
 	void chat::run() {
-		this->serverNetwork->sendCommand("/start");
+		this->serverNetwork->run();
 		sf::sleep(sf::milliseconds(1000));
 		std::cout << "Waiting for people to join...\n";
 		

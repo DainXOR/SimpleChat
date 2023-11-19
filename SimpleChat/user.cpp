@@ -6,7 +6,7 @@
 
 namespace dsc {
 	user::user() {
-		std::srand(std::time(nullptr));
+		std::srand(static_cast<uint32_t>(std::time(nullptr)));
 		int random = std::rand() % 10000;
 		this->username = "unnamed" + std::to_string(random);
 		this->clientNetwork = new client();
@@ -19,7 +19,7 @@ namespace dsc {
 		std::string answer;
 		std::getline(std::cin, answer);
 
-		for (int i = 0; i < answer.length(); i++) {
+		for (uint32_t i = 0; i < answer.length(); i++) {
 			answer[i] = std::tolower(answer[i]);
 		}
 

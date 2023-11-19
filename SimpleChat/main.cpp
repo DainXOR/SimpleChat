@@ -7,22 +7,22 @@
 
 #include "Form1.h"
 
-//#include "chat.hpp"
-//#include "user.hpp"
-//#include "secrets.hpp"
-//#include "logger.hpp"
+#include "chat.hpp"
+#include "user.hpp"
+#include "secrets.hpp"
+#include "logger.hpp"
 
 using namespace System::Windows::Forms;
 
 int main() {
-    //dsc::logger::setLogLevel(dsc::logger::VERBOSE);
-
+    dsc::logger::setLogLevel(dsc::logger::VERBOSE);
+    dsc::chat chatServer;
+    chatServer.run();
     #ifdef NDEBUG
-    //dsc::chat chatServer;
-    //chatServer.run();
+    
 
     #else
-    dsc::user userClient;
+    //dsc::user userClient;
 
     #endif // NDEBUG
 

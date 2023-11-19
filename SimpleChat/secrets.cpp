@@ -162,7 +162,7 @@ namespace dsc {
 		}
 		number -= (number - (number % 10));
 
-		return number;
+		return static_cast<int8_t>(number);
 	}
 
 	std::string secrets::caesar(std::string message, int64_t key) {

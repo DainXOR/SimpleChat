@@ -10,9 +10,13 @@
 namespace dsc {
     server::server(unsigned short port)
         : listenPort(port), running(true) {
-        this->clientThread = new std::thread(&server::connectClients, this, &clientArray);
-        this->packetThread = new std::thread(&server::managePackets, this);
-        this->consoleThread = new std::thread(&server::listenConsole, this);
+        std::thread clientThread(&server::connectClients, this, &clientArray);
+        std::thread packetThread(&server::managePackets, this);
+        std::thread consoleThread(&server::listenConsole, this);
+
+        clientThread.detach();
+        packetThread.detach();
+        consoleThread.detach();
     }
 
     std::string server::getIpAddress() {
@@ -161,6 +165,8 @@ namespace dsc {
                     .add("Managed ")
                     .add(std::to_string(managedPackets))
                     .add(" packets in")
+                    .add(std::to_string(iterator * sleepTime))
+                    .add(" milliseconds")
                     .setSender(logger::SERVER)
                     .setSeverity(logger::VERBOSE)
                     .log();
@@ -170,7 +176,7 @@ namespace dsc {
         }
     }
     void server::listenConsole() {
-        logger::user_l("Server online", logger::SERVER);
+        logger::debug("Server online", logger::SERVER);
 
         std::string userInput = "";
         std::regex commands[] = {
@@ -179,17 +185,21 @@ namespace dsc {
             std::regex("/stop"),
             std::regex("^\/restart( -p [0-9]{1,5})?$"),
             std::regex("/clients"),
-            std::regex("/packets"),
-            std::regex("/help"),
             std::regex("^\/kick(( -a (([0-9]{1,3})\.{0,1})+)|( -p [0-9]{1,5})){2}$"),
-            std::regex("^\/ban(( -a (([0-9]{1,3})\.{0,1})+)|( -p [0-9]{1,5})){2}$")
+            std::regex("^\/ban(( -a (([0-9]{1,3})\.{0,1})+)|( -p [0-9]{1,5})){2}$"),
+            std::regex("/help")
 		};
 
         while (userInput != "/exit") {
-			std::getline(std::cin, userInput);
-            sendCommand(userInput);
+            if (consoleQueue.size() < 1) {
+                std::getline(std::cin, userInput);
+                sendCommand(userInput);
+            }
+
             userInput = consoleQueue.front();
             consoleQueue.pop();
+
+            if(userInput.length() < 1) continue;
 
             if (std::regex_match(userInput, commands[0])) {
 				logger::user_m("Starting server...", logger::SERVER);
@@ -233,7 +243,7 @@ namespace dsc {
                     logger::user_m("Server failed to restart", logger::SERVER);
                 }
 			}
-            else if (userInput == "/exit") {
+            else if (std::regex_match(userInput, commands[1])) {
                 logger::user_m("Exiting...", logger::SERVER);
                 logger::user_m("Stopping server...", logger::SERVER);
                 disconnectAllClients();
@@ -241,18 +251,18 @@ namespace dsc {
                 listener.close();
                 logger::user_m("Server stopped", logger::SERVER);
             }
-            else if (userInput == "/stop") {
-				logger::user_m("Stopping server...", logger::SERVER);
+            else if (std::regex_match(userInput, commands[2])) {
+                logger::user_m("Stopping server...", logger::SERVER);
                 disconnectAllClients();
-				listener.close();
-				logger::user_m("Server stopped", logger::SERVER);
-			}
+                listener.close();
+                logger::user_m("Server stopped", logger::SERVER);
+            }
             else if (std::regex_match(userInput, commands[3])) {
                 logger::user_m("Restarting server...", logger::SERVER);
-            	
+
                 if (listener.getLocalPort() != 0) {
                     disconnectAllClients();
-					listener.close();
+                    listener.close();
                 }
 
                 userInput.erase(0, 12);
@@ -262,12 +272,12 @@ namespace dsc {
                     this->listenPort = std::stoi(userInput);
 
                     if (this->listenPort < 0 || this->listenPort > 65535) {
-						logger::error("Invalid port", logger::SERVER);
-						logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
-						logger::user_m("Server failed to restart", logger::SERVER);
-						continue;
-					}
-				}
+                        logger::error("Invalid port", logger::SERVER);
+                        logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
+                        logger::user_m("Server failed to restart", logger::SERVER);
+                        continue;
+                    }
+                }
 
                 sf::Socket::Status listenStatus = listener.listen(this->listenPort);
                 if (listenStatus == sf::Socket::Done) {
@@ -293,34 +303,20 @@ namespace dsc {
                     logger::debug("Port: " + std::to_string(listenPort), logger::SERVER);
                     logger::user_m("Server failed to restart", logger::SERVER);
                 }
-                
+
             }
-            else if (userInput == "/clients") {
-				logger::user_h("Connected clients:", logger::SERVER);
+            else if (std::regex_match(userInput, commands[4])) {
+                logger::user_h("Connected clients:", logger::SERVER);
                 for (size_t i = 0; i < clientArray.size(); i++) {
                     logger::user_h(
-						std::to_string(i) + ": " +
-						clientArray[i]->getRemoteAddress().toString() + ":" +
-						std::to_string(clientArray[i]->getRemotePort()),
-						logger::SERVER
-					);
-				}
-			}
-            else if (userInput == "/packets") {
-				logger::user_h("Managed packets: " + std::to_string(clientArray.size()), logger::SERVER);
-			}
-            else if (userInput == "/help") {
-				logger::user_h("Available commands:", logger::SERVER);
-                logger::user_h("/start -p [port] - Starts the server on the specified port", logger::SERVER);
-                logger::user_h("/stop - Stops the server", logger::SERVER);
-                logger::user_h("/restart -p [port] - Restarts the server on the specified port", logger::SERVER);
-                logger::user_h("/clients - Lists all connected clients", logger::SERVER);
-                logger::user_h("/packets - Lists all managed packets", logger::SERVER);
-                logger::user_h("/kick -a [address] -p [port] - Kicks the specified client", logger::SERVER);
-                logger::user_h("/ban -a [address] -p [port] - Bans the specified client", logger::SERVER);
-                logger::user_h("/help - Shows this message", logger::SERVER);
-			}
-            else if (std::regex_match(userInput, commands[6])) {
+                        std::to_string(i) + ": " +
+                        clientArray[i]->getRemoteAddress().toString() + ":" +
+                        std::to_string(clientArray[i]->getRemotePort()),
+                        logger::SERVER
+                    );
+                }
+            }
+            else if (std::regex_match(userInput, commands[5])) {
                 userInput.replace(0, 6, ""); 
 
                 int aFlag = userInput.find("-a");
@@ -359,7 +355,7 @@ namespace dsc {
 					}
 				}
 			}
-            else if (std::regex_match(userInput, commands[7])) {
+            else if (std::regex_match(userInput, commands[6])) {
 				userInput.replace(0, 4, "");
 
 				int aFlag = userInput.find("-a");
@@ -398,12 +394,25 @@ namespace dsc {
                     }
                 }
             }
+            else if (std::regex_match(userInput, commands[7])) {
+                logger::user_h("Available commands:", logger::SERVER);
+                logger::user_h("/start -p [port] - Starts the server on the specified port", logger::SERVER);
+                logger::user_h("/stop - Stops the server", logger::SERVER);
+                logger::user_h("/restart -p [port] - Restarts the server on the specified port", logger::SERVER);
+                logger::user_h("/clients - Lists all connected clients", logger::SERVER);
+                logger::user_h("/packets - Lists all managed packets", logger::SERVER);
+                logger::user_h("/kick -a [address] -p [port] - Kicks the specified client", logger::SERVER);
+                logger::user_h("/ban -a [address] -p [port] - Bans the specified client", logger::SERVER);
+                logger::user_h("/help - Shows this message", logger::SERVER);
+                }
+
             
             else {
 				logger::user_h("Unknown command, type /help for a list of commands", logger::SERVER);
 			}
 
-            
+            sf::sleep(sf::milliseconds(250));
+
 		}
     }
 
@@ -412,7 +421,14 @@ namespace dsc {
     }
 
     void server::run() {
-        this->consoleThread->join();
+        this->sendCommand("/start");
+
 	}
+
+    server::~server() {
+        this->sendCommand("/exit");
+        sf::sleep(sf::milliseconds(5000));
+
+    }
 
 }
