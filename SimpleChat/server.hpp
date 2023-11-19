@@ -20,7 +20,7 @@ namespace dsc {
         std::queue<std::string> consoleQueue;
     public:
 
-        server(unsigned short);
+        server(unsigned short = sf::Socket::AnyPort);
         std::string getIpAddress();
         unsigned short getPort();
 
@@ -38,6 +38,8 @@ namespace dsc {
         void managePackets();
         void listenConsole();
         void sendCommand(std::string);
+
+        void run();
     };
 }
 

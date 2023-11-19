@@ -1,25 +1,35 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include <regex>
+//#include <iostream>
+//#include <string>
+//#include <regex>
 
-#include "chat.hpp"
-#include "user.hpp"
-#include "secrets.hpp"
-#include "logger.hpp"
+#include "pch.h"
+
+#include "Form1.h"
+
+//#include "chat.hpp"
+//#include "user.hpp"
+//#include "secrets.hpp"
+//#include "logger.hpp"
+
+using namespace System::Windows::Forms;
 
 int main() {
-    dsc::logger::setLogLevel(dsc::logger::VERBOSE);
+    //dsc::logger::setLogLevel(dsc::logger::VERBOSE);
 
     #ifdef NDEBUG
-    dsc::chat chatServer;
-    chatServer.run();
+    //dsc::chat chatServer;
+    //chatServer.run();
 
     #else
     dsc::user userClient;
 
     #endif // NDEBUG
 
+
+    Application::EnableVisualStyles();
+    Application::SetCompatibleTextRenderingDefault(false);
+    Application::Run(gcnew CppCLRWinFormsProject::Form1());
     // dsc::chat chatServer;
     // chatServer.run();
 

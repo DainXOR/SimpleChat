@@ -11,11 +11,13 @@
 
 namespace dsc {
 	chat::chat() {
-		this->serverNetwork = new server(sf::Socket::AnyPort);
+		this->serverNetwork = new server();
 	}
 
 	void chat::run() {
 		this->serverNetwork->sendCommand("/start");
+		sf::sleep(sf::milliseconds(1000));
 		std::cout << "Waiting for people to join...\n";
+		
 	}
 }

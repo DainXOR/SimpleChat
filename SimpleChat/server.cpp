@@ -13,8 +13,6 @@ namespace dsc {
         this->clientThread = new std::thread(&server::connectClients, this, &clientArray);
         this->packetThread = new std::thread(&server::managePackets, this);
         this->consoleThread = new std::thread(&server::listenConsole, this);
-
-        this->consoleThread->join();
     }
 
     std::string server::getIpAddress() {
@@ -143,23 +141,31 @@ namespace dsc {
         return false;
     }
     void server::managePackets() {
-        while (running) {
-            if (listener.getLocalPort() != 0) {
-                size_t managedPackets = 0;
+        static constexpr uint16_t loopsToReport = 120;
+        static constexpr sf::Int32 sleepTime = 250;
 
+        size_t iterator = 0;
+        size_t managedPackets = 0;
+
+        while (this->running) {
+            if (listener.getLocalPort() != 0) {
                 for (size_t i = 0; i < clientArray.size(); i++) {
                     managedPackets += receivePacket(clientArray[i], i);
                 }
 
+                sf::sleep(sf::milliseconds(sleepTime));
+                iterator++;
+			}
+            if (iterator >= loopsToReport) {
                 logger::buildMessage()
                     .add("Managed ")
                     .add(std::to_string(managedPackets))
-                    .add(" packets")
+                    .add(" packets in")
                     .setSender(logger::SERVER)
-                    .setSeverity(logger::DEBUG)
+                    .setSeverity(logger::VERBOSE)
                     .log();
-
-                sf::sleep(sf::milliseconds(250));
+				iterator = 0;
+				managedPackets = 0;
 			}
         }
     }
@@ -397,12 +403,16 @@ namespace dsc {
 				logger::user_h("Unknown command, type /help for a list of commands", logger::SERVER);
 			}
 
-
+            
 		}
     }
 
     void server::sendCommand(std::string command) {
     	this->consoleQueue.push(command);
     }
+
+    void server::run() {
+        this->consoleThread->join();
+	}
 
 }
