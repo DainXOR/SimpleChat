@@ -188,4 +188,30 @@ namespace dsc {
 		return std::string();
 	}
 
+	uint64_t secrets::generatePrimeNumber(uint64_t minValue) {
+		uint64_t maxValue = -1;
+		uint64_t difference = maxValue - minValue;
+
+		uint64_t prime = minValue;
+		uint64_t number = (rand() % difference) + minValue;
+
+		bool isPrime = false;
+		for (uint64_t i = 2; i <= number / 2; i++) {
+			if (number % i == 0) {
+				number++;
+				i = 2;
+				continue;
+			}
+			else if (i >= number / 2) {
+				isPrime = true;
+				break;
+			}
+		}
+		if (isPrime && number >= minValue) {
+			prime = number;
+		}
+
+		return prime;
+	}
+
 }

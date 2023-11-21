@@ -170,6 +170,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico" />
+    <Image Include="BtnSend.Image.bmp" />
+    <Image Include="images\enviar (1).png" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

@@ -3,35 +3,39 @@
 //#include <string>
 //#include <regex>
 
-#include "pch.h"
+//#include "pch.h"
 
-#include "Form1.h"
+//#include "Form1.h"
 
-#include "chat.hpp"
-#include "user.hpp"
-#include "secrets.hpp"
-#include "logger.hpp"
+//#include "chat.hpp"
+//#include "user.hpp"
+//#include "secrets.hpp"
+//#include "logger.hpp"
 
 using namespace System::Windows::Forms;
 
 int main() {
-    dsc::logger::setLogLevel(dsc::logger::VERBOSE);
-    dsc::chat chatServer;
-    chatServer.run();
+    //dsc::logger::setLogLevel(dsc::logger::VERBOSE);
+    //dsc::chat chatServer;
+    //chatServer.run();
+
+    //dsc::user userClient;
+
+
+    //chatServer.waitUntilExit();
+
     #ifdef NDEBUG
     
 
     #else
-    //dsc::user userClient;
+    
 
     #endif // NDEBUG
 
 
-    Application::EnableVisualStyles();
-    Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew CppCLRWinFormsProject::Form1());
-    // dsc::chat chatServer;
-    // chatServer.run();
+    //Application::EnableVisualStyles();
+    //Application::SetCompatibleTextRenderingDefault(false);
+    //Application::Run(gcnew CppCLRWinFormsProject::Form1());
 
     //
     //std::cout << "Enter the server address: ";
@@ -57,4 +61,3 @@ int main() {
     //
 	return 0;
 }
-

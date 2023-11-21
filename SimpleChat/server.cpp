@@ -10,6 +10,10 @@
 namespace dsc {
     server::server(unsigned short port)
         : listenPort(port), running(true) {
+        this->onRecivePacket = [](sf::Packet packet, sf::TcpSocket *client) {
+			return true;
+		};
+
         std::thread clientThread(&server::connectClients, this, &clientArray);
         std::thread packetThread(&server::managePackets, this);
         std::thread consoleThread(&server::listenConsole, this);
@@ -24,6 +28,11 @@ namespace dsc {
     }
     unsigned short server::getPort() {
         return listener.getLocalPort();
+    }
+
+    bool server::isRunning()
+        const {
+        return running;
     }
 
     void server::connectClients(std::vector<sf::TcpSocket *> *clientArray) {
@@ -120,15 +129,11 @@ namespace dsc {
             disconnectClient(client, iterator);
             return true;
         }
-        if (packet.getDataSize() > 0) {
-            std::string receivedMessage;
-            packet >> receivedMessage;
-            packet.clear();
-
-            packet << receivedMessage << client->getRemoteAddress().toString() << client->getRemotePort();
-
+        if (packet.getDataSize() > 0 && this->onRecivePacket(packet, client)) {
             broadcastPacket(packet, client->getRemoteAddress(), client->getRemotePort());
 
+            std::string receivedMessage;
+            packet >> receivedMessage;
             logger::buildMessage()
                 .add("Received message from ")
                 .add(client->getRemoteAddress().toString())
@@ -164,9 +169,9 @@ namespace dsc {
                 logger::buildMessage()
                     .add("Managed ")
                     .add(std::to_string(managedPackets))
-                    .add(" packets in")
-                    .add(std::to_string(iterator * sleepTime))
-                    .add(" milliseconds")
+                    .add(" packets in ")
+                    .add(std::to_string(iterator * sleepTime / 1000))
+                    .add(" seconds")
                     .setSender(logger::SERVER)
                     .setSeverity(logger::VERBOSE)
                     .log();
@@ -181,13 +186,13 @@ namespace dsc {
         std::string userInput = "";
         std::regex commands[] = {
             std::regex("^\/start( -p [0-9]{1,5})?$"),
-            std::regex("/exit"),
-            std::regex("/stop"),
+            std::regex("^\/exit$"),
+            std::regex("^\/stop$"),
             std::regex("^\/restart( -p [0-9]{1,5})?$"),
-            std::regex("/clients"),
+            std::regex("^\/clients$"),
             std::regex("^\/kick(( -a (([0-9]{1,3})\.{0,1})+)|( -p [0-9]{1,5})){2}$"),
             std::regex("^\/ban(( -a (([0-9]{1,3})\.{0,1})+)|( -p [0-9]{1,5})){2}$"),
-            std::regex("/help")
+            std::regex("^\/help$")
 		};
 
         while (userInput != "/exit") {
@@ -420,15 +425,14 @@ namespace dsc {
     	this->consoleQueue.push(command);
     }
 
+    void server::setRecivePacketCallback(std::function<bool(sf::Packet, sf::TcpSocket*)> callback) {
+        this->onRecivePacket = callback;
+    }
+
     void server::run() {
         this->sendCommand("/start");
 
 	}
 
-    server::~server() {
-        this->sendCommand("/exit");
-        sf::sleep(sf::milliseconds(5000));
-
-    }
 
 }

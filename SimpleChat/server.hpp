@@ -4,6 +4,7 @@
 
 #include <thread>
 #include <queue>
+#include <functional>
 
 
 namespace dsc {
@@ -12,6 +13,8 @@ namespace dsc {
         std::vector<sf::TcpSocket *> clientArray;
         unsigned short listenPort;
         bool running;
+
+        std::function<bool(sf::Packet, sf::TcpSocket *)> onRecivePacket;
 
         //std::thread *clientThread;
         //std::thread *packetThread;
@@ -23,6 +26,7 @@ namespace dsc {
         server(unsigned short = sf::Socket::AnyPort);
         std::string getIpAddress();
         unsigned short getPort();
+        bool isRunning() const;
 
         void connectClients(std::vector<sf::TcpSocket *> *);
         void disconnectClient(sf::TcpSocket *, size_t);
@@ -39,8 +43,9 @@ namespace dsc {
         void listenConsole();
         void sendCommand(std::string);
 
+        void setRecivePacketCallback(std::function<bool(sf::Packet, sf::TcpSocket *)>);
+
         void run();
-        ~server();
     };
 }
 

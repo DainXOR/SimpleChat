@@ -1,5 +1,7 @@
 #pragma once
 #include "WindowChat.h"
+
+
 namespace CppCLRWinFormsProject {
 
 	using namespace System;
@@ -34,13 +36,13 @@ namespace CppCLRWinFormsProject {
 				delete components;
 			}
 		}
-	private: System::Windows::Forms::Label^ label1;
-	private: System::Windows::Forms::TextBox^ textBox1;
-	private: System::Windows::Forms::TextBox^ textBox2;
-	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::TextBox^ textBox3;
-	private: System::Windows::Forms::Label^ label3;
-	private: System::Windows::Forms::Button^ button1;
+	private: System::Windows::Forms::Label^ ipLabel;
+	private: System::Windows::Forms::TextBox^ ipTextBox;
+	private: System::Windows::Forms::TextBox^ portTextBox;
+	private: System::Windows::Forms::Label^ portLabel;
+	private: System::Windows::Forms::TextBox^ usernameTextBox;
+	private: System::Windows::Forms::Label^ usernameLabel;
+	private: System::Windows::Forms::Button^ submitButton;
 	protected:
 
 	private:
@@ -56,89 +58,90 @@ namespace CppCLRWinFormsProject {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
-			this->textBox2 = (gcnew System::Windows::Forms::TextBox());
-			this->label2 = (gcnew System::Windows::Forms::Label());
-			this->textBox3 = (gcnew System::Windows::Forms::TextBox());
-			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->ipLabel = (gcnew System::Windows::Forms::Label());
+			this->ipTextBox = (gcnew System::Windows::Forms::TextBox());
+			this->portLabel = (gcnew System::Windows::Forms::Label());
+			this->portTextBox = (gcnew System::Windows::Forms::TextBox());
+			this->usernameLabel = (gcnew System::Windows::Forms::Label());
+			this->usernameTextBox = (gcnew System::Windows::Forms::TextBox());
+			this->submitButton = (gcnew System::Windows::Forms::Button());
 			this->SuspendLayout();
 			// 
 			// label1
 			// 
-			this->label1->AutoSize = true;
-			this->label1->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			this->label1->Location = System::Drawing::Point(13, 13);
-			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(159, 13);
-			this->label1->TabIndex = 0;
-			this->label1->Text = L"Ingresa la dirección del servidor:";
+			this->ipLabel->AutoSize = true;
+			this->ipLabel->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			this->ipLabel->Location = System::Drawing::Point(13, 13);
+			this->ipLabel->Name = L"label1";
+			this->ipLabel->Size = System::Drawing::Size(159, 13);
+			this->ipLabel->TabIndex = 0;
+			this->ipLabel->Text = L"Ingresa la dirección del servidor:";
 			// 
 			// textBox1
 			// 
-			this->textBox1->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->ipTextBox->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox1->Location = System::Drawing::Point(16, 30);
-			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(256, 27);
-			this->textBox1->TabIndex = 1;
+			this->ipTextBox->Location = System::Drawing::Point(16, 30);
+			this->ipTextBox->Name = L"textBox1";
+			this->ipTextBox->Size = System::Drawing::Size(256, 27);
+			this->ipTextBox->TabIndex = 1;
+
 			// 
 			// textBox2
 			// 
-			this->textBox2->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->portTextBox->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox2->Location = System::Drawing::Point(15, 80);
-			this->textBox2->Name = L"textBox2";
-			this->textBox2->Size = System::Drawing::Size(256, 27);
-			this->textBox2->TabIndex = 3;
-			this->textBox2->TextChanged += gcnew System::EventHandler(this, &Form1::textBox2_TextChanged);
+			this->portTextBox->Location = System::Drawing::Point(15, 80);
+			this->portTextBox->Name = L"textBox2";
+			this->portTextBox->Size = System::Drawing::Size(256, 27);
+			this->portTextBox->TabIndex = 3;
+			this->portTextBox->TextChanged += gcnew System::EventHandler(this, &Form1::textBox2_TextChanged);
 			// 
 			// label2
 			// 
-			this->label2->AutoSize = true;
-			this->label2->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			this->label2->Location = System::Drawing::Point(12, 63);
-			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(146, 13);
-			this->label2->TabIndex = 2;
-			this->label2->Text = L"Ingresa el puerto del servidor:";
-			this->label2->Click += gcnew System::EventHandler(this, &Form1::label2_Click);
+			this->portLabel->AutoSize = true;
+			this->portLabel->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			this->portLabel->Location = System::Drawing::Point(12, 63);
+			this->portLabel->Name = L"label2";
+			this->portLabel->Size = System::Drawing::Size(146, 13);
+			this->portLabel->TabIndex = 2;
+			this->portLabel->Text = L"Ingresa el puerto del servidor:";
+			this->portLabel->Click += gcnew System::EventHandler(this, &Form1::label2_Click);
 			// 
 			// textBox3
 			// 
-			this->textBox3->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->usernameTextBox->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox3->Location = System::Drawing::Point(16, 129);
-			this->textBox3->Name = L"textBox3";
-			this->textBox3->Size = System::Drawing::Size(256, 27);
-			this->textBox3->TabIndex = 5;
+			this->usernameTextBox->Location = System::Drawing::Point(16, 129);
+			this->usernameTextBox->Name = L"textBox3";
+			this->usernameTextBox->Size = System::Drawing::Size(256, 27);
+			this->usernameTextBox->TabIndex = 5;
 			// 
 			// label3
 			// 
-			this->label3->AutoSize = true;
-			this->label3->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			this->label3->Location = System::Drawing::Point(13, 112);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(106, 13);
-			this->label3->TabIndex = 4;
-			this->label3->Text = L"Ingresa tu username:";
+			this->usernameLabel->AutoSize = true;
+			this->usernameLabel->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			this->usernameLabel->Location = System::Drawing::Point(13, 112);
+			this->usernameLabel->Name = L"label3";
+			this->usernameLabel->Size = System::Drawing::Size(106, 13);
+			this->usernameLabel->TabIndex = 4;
+			this->usernameLabel->Text = L"Ingresa tu username:";
 			// 
 			// button1
 			// 
-			this->button1->BackColor = System::Drawing::SystemColors::ControlDark;
-			this->button1->FlatAppearance->BorderSize = 0;
-			this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->button1->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->submitButton->BackColor = System::Drawing::SystemColors::ControlDark;
+			this->submitButton->FlatAppearance->BorderSize = 0;
+			this->submitButton->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->submitButton->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button1->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			this->button1->Location = System::Drawing::Point(42, 173);
-			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(190, 30);
-			this->button1->TabIndex = 6;
-			this->button1->Text = L"Ingresar al server";
-			this->button1->UseVisualStyleBackColor = false;
-			this->button1->Click += gcnew System::EventHandler(this, &Form1::button1_Click);
+			this->submitButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			this->submitButton->Location = System::Drawing::Point(42, 173);
+			this->submitButton->Name = L"button1";
+			this->submitButton->Size = System::Drawing::Size(190, 30);
+			this->submitButton->TabIndex = 6;
+			this->submitButton->Text = L"Ingresar al server";
+			this->submitButton->UseVisualStyleBackColor = false;
+			this->submitButton->Click += gcnew System::EventHandler(this, &Form1::button1_Click);
 			// 
 			// Form1
 			// 
@@ -147,13 +150,13 @@ namespace CppCLRWinFormsProject {
 			this->AutoSize = true;
 			this->BackColor = System::Drawing::SystemColors::ActiveCaptionText;
 			this->ClientSize = System::Drawing::Size(284, 261);
-			this->Controls->Add(this->button1);
-			this->Controls->Add(this->textBox3);
-			this->Controls->Add(this->label3);
-			this->Controls->Add(this->textBox2);
-			this->Controls->Add(this->label2);
-			this->Controls->Add(this->textBox1);
-			this->Controls->Add(this->label1);
+			this->Controls->Add(this->submitButton);
+			this->Controls->Add(this->usernameTextBox);
+			this->Controls->Add(this->usernameLabel);
+			this->Controls->Add(this->portTextBox);
+			this->Controls->Add(this->portLabel);
+			this->Controls->Add(this->ipTextBox);
+			this->Controls->Add(this->ipLabel);
 			this->MaximumSize = System::Drawing::Size(300, 300);
 			this->Name = L"Form1";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
@@ -172,9 +175,14 @@ namespace CppCLRWinFormsProject {
 	}
 private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
 	nuevointento::WindowChat^ windowChat = gcnew nuevointento::WindowChat();
+	windowChat->setIpAddress(this->ipTextBox->Text);
+	windowChat->setPort(this->portTextBox->Text);
+	windowChat->setUsername(this->usernameTextBox->Text);
 	this->Visible = false;
 	windowChat->ShowDialog();
-	this->Visible = true;
+	windowChat->run();
+	//this->Visible = true;
+
 
 }
 };

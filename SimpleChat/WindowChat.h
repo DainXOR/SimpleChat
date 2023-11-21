@@ -1,4 +1,7 @@
 #pragma once
+#include <msclr/marshal_cppstd.h>
+
+#include "user.hpp"
 
 namespace nuevointento {
 
@@ -15,12 +18,44 @@ namespace nuevointento {
 	public ref class WindowChat : public System::Windows::Forms::Form
 	{
 	public:
-		WindowChat(void)
+		WindowChat()
 		{
 			InitializeComponent();
 			//
 			//TODO: agregar código de constructor aquí
 			//
+			this->clientNetwork = new dsc::user();
+		}
+
+		void setIpAddress(System::String^ ip) {
+			this->ipAddress = ip;
+		}
+		void setPort(System::String^ port) {
+			this->port = port;
+		}
+		void setUsername(System::String^ username) {
+			this->username = username;
+		}
+
+		void run() {
+			System::String^ ipCopy = this->ipAddress;
+			System::String^ portCopy = this->port;
+			System::String^ usernameCopy = this->username;
+
+			std::string ip = msclr::interop::marshal_as<std::string>(ipCopy);
+			std::string port = msclr::interop::marshal_as<std::string>(portCopy);
+			std::string username = msclr::interop::marshal_as<std::string>(usernameCopy);
+			uint32_t portNumber = 0;
+
+			try {
+				portNumber = std::stoi(port);
+			} catch (const std::exception&) {
+				portNumber = 0;
+			}
+
+			this->clientNetwork->setUsername(username);
+			this->clientNetwork->connect(ip.c_str(), portNumber);
+			this->clientNetwork->run();
 		}
 
 	protected:
@@ -34,6 +69,10 @@ namespace nuevointento {
 				delete components;
 			}
 		}
+
+	private: dsc::user* clientNetwork;
+
+
 	private: System::Windows::Forms::Panel^ panel1;
 	private: System::Windows::Forms::Panel^ panel3;
 	private: System::Windows::Forms::TextBox^ MessageTextBox;
@@ -47,7 +86,9 @@ namespace nuevointento {
 
 	private: System::Windows::Forms::Button^ BtnSend;
 
-	protected:
+	private: System::String^ ipAddress;
+	private: System::String^ port;
+	private: System::String^ username;
 
 	private:
 		/// <summary>
@@ -132,7 +173,7 @@ namespace nuevointento {
 			this->BtnSend->FlatAppearance->BorderColor = System::Drawing::Color::Black;
 			this->BtnSend->FlatAppearance->BorderSize = 0;
 			this->BtnSend->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->BtnSend->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"BtnSend.Image")));
+			//this->BtnSend->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"BtnSend.Image")));
 			this->BtnSend->Location = System::Drawing::Point(670, 8);
 			this->BtnSend->Name = L"BtnSend";
 			this->BtnSend->Size = System::Drawing::Size(50, 50);
@@ -202,7 +243,6 @@ namespace nuevointento {
 			this->panel2->ResumeLayout(false);
 			this->panel2->PerformLayout();
 			this->ResumeLayout(false);
-
 		}
 #pragma endregion
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {

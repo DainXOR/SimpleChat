@@ -174,8 +174,8 @@ namespace dsc {
 #else
 	#ifdef NDEBUG
 	logger::severity logger::logLevel = WARNING;
-	bool logger::recordTrace = false;
-	logger::severity logger::traceLevel = ERROR;
+	bool logger::recordTrace = true;
+	logger::severity logger::traceLevel = WARNING;
 	#else
 	logger::severity logger::logLevel = INFO;
 	bool logger::recordTrace = true;

@@ -47,6 +47,8 @@ namespace dsc {
 		static std::string caesar(std::string, int64_t);
 		static std::string vigenere(std::string, std::string);
 		static std::string enigma(std::string, std::string);
+
+		static uint64_t generatePrimeNumber(uint64_t = 2);
 	};
 
 }
