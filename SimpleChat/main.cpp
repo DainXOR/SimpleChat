@@ -1,5 +1,5 @@
 #pragma once
-//#include <iostream>
+#include <iostream>
 //#include <string>
 //#include <regex>
 
@@ -15,9 +15,26 @@
 using namespace System::Windows::Forms;
 
 int main() {
+    srand(time(NULL));
+
     dsc::logger::setLogLevel(dsc::logger::VERBOSE);
-    dsc::chat chatServer;
-    chatServer.run();
+    //dsc::chat chatServer;
+    //chatServer.run();
+    //
+    //chatServer.waitUntilEnd();
+
+    uint64_t value1 = dsc::secrets::generatePrimeNumber();
+    std::cout << "Prime: " << value1 << "\n";
+
+    uint64_t value2 = dsc::secrets::generatePrimeNumber(1ull << 31);
+    std::cout << "Prime: " << value2 << "\n";
+
+    uint64_t value3 = dsc::secrets::generatePrimeNumber(2, 1ull << 16);
+    std::cout << "Prime: " << value3 << "\n";
+
+    uint64_t value4 = dsc::secrets::generatePrimeNumber(2ull << 15, 2ull << 16);
+    std::cout << "Prime: " << value4 << "\n";
+
     #ifdef NDEBUG
     
 
@@ -27,9 +44,9 @@ int main() {
     #endif // NDEBUG
 
 
-    Application::EnableVisualStyles();
-    Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew CppCLRWinFormsProject::Form1());
+    //Application::EnableVisualStyles();
+    //Application::SetCompatibleTextRenderingDefault(false);
+    //Application::Run(gcnew CppCLRWinFormsProject::Form1());
     // dsc::chat chatServer;
     // chatServer.run();
 

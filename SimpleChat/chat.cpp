@@ -8,6 +8,7 @@
 #include <SFML/Network.hpp>
 
 #include "user.hpp"
+#include "logger.hpp"
 
 namespace dsc {
 	chat::chat() {
@@ -16,8 +17,12 @@ namespace dsc {
 
 	void chat::run() {
 		this->serverNetwork->run();
-		sf::sleep(sf::milliseconds(1000));
-		std::cout << "Waiting for people to join...\n";
+		sf::sleep(sf::milliseconds(250));
+		logger::msg("Waiting for people to join...", logger::CLIENT);
 		
+	}
+
+	void chat::waitUntilEnd() const {
+		this->serverNetwork->waitUntilEnd();
 	}
 }

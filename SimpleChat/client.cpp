@@ -58,7 +58,7 @@ namespace dsc {
 				logger::error("Unknown error", logger::CLIENT);
 		}
 	}
-	void client::getLatestPacket(sf::Packet &packet) {
+	void client::getLatestPacket(sf::Packet &packet) const {
 		packet = this->lastPacket;
 	}
 
