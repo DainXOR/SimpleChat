@@ -43,7 +43,6 @@ int main() {
 
     #endif // NDEBUG
 
-
     //Application::EnableVisualStyles();
     //Application::SetCompatibleTextRenderingDefault(false);
     //Application::Run(gcnew CppCLRWinFormsProject::Form1());

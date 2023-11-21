@@ -1,6 +1,6 @@
 #pragma once
 
-namespace nuevointento {
+namespace SimpleChat {
 
 	using namespace System;
 	using namespace System::ComponentModel;
@@ -21,6 +21,20 @@ namespace nuevointento {
 			//
 			//TODO: agregar código de constructor aquí
 			//
+		}
+		property String^ IPAddressValue {
+			String^ get() { return ipAddressValue; }
+			void set(String^ value) { ipAddressValue = value; }
+		}
+
+		property String^ PortValue {
+			String^ get() { return portValue; }
+			void set(String^ value) { portValue = value; }
+		}
+
+		property String^ UsernameValue {
+			String^ get() { return usernameValue; }
+			void set(String^ value) { usernameValue = value; }
 		}
 
 	protected:
@@ -46,6 +60,9 @@ namespace nuevointento {
 	private: System::Windows::Forms::TextBox^ AllMessages;
 
 	private: System::Windows::Forms::Button^ BtnSend;
+	private: String^ ipAddressValue;
+	private: String^ portValue;
+	private: String^ usernameValue;
 
 	protected:
 
