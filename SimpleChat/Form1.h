@@ -1,6 +1,6 @@
-#pragma once
+ #pragma once
 #include "WindowChat.h"
-namespace CppCLRWinFormsProject {
+namespace SimpleChat {
 
 	using namespace System;
 	using namespace System::ComponentModel;
@@ -35,12 +35,17 @@ namespace CppCLRWinFormsProject {
 			}
 		}
 	private: System::Windows::Forms::Label^ label1;
-	private: System::Windows::Forms::TextBox^ textBox1;
-	private: System::Windows::Forms::TextBox^ textBox2;
+	private: System::Windows::Forms::TextBox^ IpAddress;
+	private: System::Windows::Forms::TextBox^ Port;
+
+
+
 	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::TextBox^ textBox3;
+	private: System::Windows::Forms::TextBox^ Username;
+
 	private: System::Windows::Forms::Label^ label3;
-	private: System::Windows::Forms::Button^ button1;
+	private: System::Windows::Forms::Button^ LoginServer;
+
 	protected:
 
 	private:
@@ -57,12 +62,12 @@ namespace CppCLRWinFormsProject {
 		void InitializeComponent(void)
 		{
 			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
-			this->textBox2 = (gcnew System::Windows::Forms::TextBox());
+			this->IpAddress = (gcnew System::Windows::Forms::TextBox());
+			this->Port = (gcnew System::Windows::Forms::TextBox());
 			this->label2 = (gcnew System::Windows::Forms::Label());
-			this->textBox3 = (gcnew System::Windows::Forms::TextBox());
+			this->Username = (gcnew System::Windows::Forms::TextBox());
 			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->LoginServer = (gcnew System::Windows::Forms::Button());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -75,24 +80,24 @@ namespace CppCLRWinFormsProject {
 			this->label1->TabIndex = 0;
 			this->label1->Text = L"Ingresa la dirección del servidor:";
 			// 
-			// textBox1
+			// IpAddress
 			// 
-			this->textBox1->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->IpAddress->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox1->Location = System::Drawing::Point(16, 30);
-			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(256, 27);
-			this->textBox1->TabIndex = 1;
+			this->IpAddress->Location = System::Drawing::Point(16, 30);
+			this->IpAddress->Name = L"IpAddress";
+			this->IpAddress->Size = System::Drawing::Size(256, 27);
+			this->IpAddress->TabIndex = 1;
 			// 
-			// textBox2
+			// Port
 			// 
-			this->textBox2->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->Port->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox2->Location = System::Drawing::Point(15, 80);
-			this->textBox2->Name = L"textBox2";
-			this->textBox2->Size = System::Drawing::Size(256, 27);
-			this->textBox2->TabIndex = 3;
-			this->textBox2->TextChanged += gcnew System::EventHandler(this, &Form1::textBox2_TextChanged);
+			this->Port->Location = System::Drawing::Point(15, 80);
+			this->Port->Name = L"Port";
+			this->Port->Size = System::Drawing::Size(256, 27);
+			this->Port->TabIndex = 3;
+			this->Port->TextChanged += gcnew System::EventHandler(this, &Form1::textBox2_TextChanged);
 			// 
 			// label2
 			// 
@@ -105,14 +110,14 @@ namespace CppCLRWinFormsProject {
 			this->label2->Text = L"Ingresa el puerto del servidor:";
 			this->label2->Click += gcnew System::EventHandler(this, &Form1::label2_Click);
 			// 
-			// textBox3
+			// Username
 			// 
-			this->textBox3->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->Username->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->textBox3->Location = System::Drawing::Point(16, 129);
-			this->textBox3->Name = L"textBox3";
-			this->textBox3->Size = System::Drawing::Size(256, 27);
-			this->textBox3->TabIndex = 5;
+			this->Username->Location = System::Drawing::Point(16, 129);
+			this->Username->Name = L"Username";
+			this->Username->Size = System::Drawing::Size(256, 27);
+			this->Username->TabIndex = 5;
 			// 
 			// label3
 			// 
@@ -124,21 +129,21 @@ namespace CppCLRWinFormsProject {
 			this->label3->TabIndex = 4;
 			this->label3->Text = L"Ingresa tu username:";
 			// 
-			// button1
+			// LoginServer
 			// 
-			this->button1->BackColor = System::Drawing::SystemColors::ControlDark;
-			this->button1->FlatAppearance->BorderSize = 0;
-			this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->button1->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->LoginServer->BackColor = System::Drawing::SystemColors::ControlDark;
+			this->LoginServer->FlatAppearance->BorderSize = 0;
+			this->LoginServer->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->LoginServer->Font = (gcnew System::Drawing::Font(L"Century Gothic", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->button1->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			this->button1->Location = System::Drawing::Point(42, 173);
-			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(190, 30);
-			this->button1->TabIndex = 6;
-			this->button1->Text = L"Ingresar al server";
-			this->button1->UseVisualStyleBackColor = false;
-			this->button1->Click += gcnew System::EventHandler(this, &Form1::button1_Click);
+			this->LoginServer->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			this->LoginServer->Location = System::Drawing::Point(42, 173);
+			this->LoginServer->Name = L"LoginServer";
+			this->LoginServer->Size = System::Drawing::Size(190, 30);
+			this->LoginServer->TabIndex = 6;
+			this->LoginServer->Text = L"Ingresar al server";
+			this->LoginServer->UseVisualStyleBackColor = false;
+			this->LoginServer->Click += gcnew System::EventHandler(this, &Form1::button1_Click);
 			// 
 			// Form1
 			// 
@@ -147,12 +152,12 @@ namespace CppCLRWinFormsProject {
 			this->AutoSize = true;
 			this->BackColor = System::Drawing::SystemColors::ActiveCaptionText;
 			this->ClientSize = System::Drawing::Size(284, 261);
-			this->Controls->Add(this->button1);
-			this->Controls->Add(this->textBox3);
+			this->Controls->Add(this->LoginServer);
+			this->Controls->Add(this->Username);
 			this->Controls->Add(this->label3);
-			this->Controls->Add(this->textBox2);
+			this->Controls->Add(this->Port);
 			this->Controls->Add(this->label2);
-			this->Controls->Add(this->textBox1);
+			this->Controls->Add(this->IpAddress);
 			this->Controls->Add(this->label1);
 			this->MaximumSize = System::Drawing::Size(300, 300);
 			this->Name = L"Form1";
@@ -171,7 +176,13 @@ namespace CppCLRWinFormsProject {
 	private: System::Void Form1_Load(System::Object^ sender, System::EventArgs^ e) {
 	}
 private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-	nuevointento::WindowChat^ windowChat = gcnew nuevointento::WindowChat();
+	String^ ipAddress = IpAddress->Text;
+	String^ port = Port->Text;
+	String^ username = Username->Text;
+	SimpleChat::WindowChat^ windowChat = gcnew SimpleChat::WindowChat();
+	windowChat->IPAddressValue = ipAddress;
+	windowChat->PortValue = port;
+	windowChat->UsernameValue = username;
 	this->Visible = false;
 	windowChat->ShowDialog();
 	this->Visible = true;

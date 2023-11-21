@@ -29,7 +29,7 @@ int main() {
 
     Application::EnableVisualStyles();
     Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew CppCLRWinFormsProject::Form1());
+    Application::Run(gcnew SimpleChat::Form1());
     // dsc::chat chatServer;
     // chatServer.run();
 
