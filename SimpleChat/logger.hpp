@@ -88,6 +88,8 @@ namespace dsc {
 			builder setSender(sender);
 			builder setSeverity(severity);
 			bool log();
+			std::string getMessage();
+			std::string getFormatedMessage();
 		};
 	};
 }

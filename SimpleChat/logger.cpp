@@ -212,4 +212,13 @@ namespace dsc {
 	bool logger::builder::log() {
 		return logger::log(this->message, this->who, this->level);
 	}
+	std::string logger::builder::getMessage() {
+		std::regex colorRegex("\033\\[[0-9;]*m");
+		std::string message = std::regex_replace(this->getFormatedMessage(), colorRegex, "");
+
+		return message;
+	}
+	std::string logger::builder::getFormatedMessage() {
+		return logger::formatMessage(this->message, this->who, this->level);
+	}
 }

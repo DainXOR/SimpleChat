@@ -12,6 +12,7 @@ namespace dsc {
 	public:
 		chat();
 		void run();
+		void waitUntilEnd() const;
 
 	};
 

@@ -18,7 +18,7 @@ namespace dsc {
 
         void receivePacket(sf::TcpSocket *);
         void sendPacket(sf::Packet &);
-        void getLatestPacket(sf::Packet &);
+        void getLatestPacket(sf::Packet &) const;
         void run();
     };
 }
