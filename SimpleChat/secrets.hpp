@@ -47,8 +47,20 @@ namespace dsc {
 		static std::string caesar(std::string, int64_t);
 		static std::string vigenere(std::string, std::string);
 		static std::string enigma(std::string, std::string);
+		static std::string feistel(std::string, std::string);
+		static std::string des(std::string, std::string);
+		static std::string aes(std::string, std::string);
+		static std::string rc4(std::string, std::string);
+		static std::string rc5(std::string, std::string);
+		static std::string rc6(std::string, std::string);
+		static std::string blowfish(std::string, std::string);			
+
+		static uint64_t modularExponentiation(uint64_t, uint64_t, uint64_t);
 
 		static uint64_t generatePrimeNumber(uint64_t = 2, uint64_t = -1);
+		static uint64_t isPrime(uint64_t);
+		static uint64_t isPrimeBig(uint64_t);
+
 	};
 
 }

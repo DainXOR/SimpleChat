@@ -188,36 +188,100 @@ namespace dsc {
 		return std::string();
 	}
 
+	std::string secrets::feistel(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::des(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::aes(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::rc4(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::rc5(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::rc6(std::string, std::string) {
+		return std::string();
+	}
+
+	std::string secrets::blowfish(std::string, std::string) {
+		return std::string();
+	}
+
+	uint64_t secrets::modularExponentiation(uint64_t base, uint64_t exp, uint64_t mod) {
+		uint64_t result = 1;
+
+		base %= mod;
+
+		while (exp > 0) {
+			if (exp & 0b1) {
+				result = (result * base) % mod;
+			}
+
+			exp >>= 1;
+			base = (base * base) % mod;
+		}
+
+		return result;
+	}
+
 	uint64_t secrets::generatePrimeNumber(uint64_t minValue, uint64_t maxValue) {
 		uint64_t difference = maxValue - minValue;
 
+		// auto checker = minValue > (1ull << 32) ? isPrimeBig : isPrime;
+
 		uint64_t random = rand();
 
-		uint64_t prime = minValue;
 		uint64_t number = (random % difference) + minValue;
-		number |= 0b1;
+		number |= 0b1; // Ensure that number is odd
 
-		std::cout << "Rand: " << random << "\n";
-		std::cout << "Number: " << number << "\n";
+		for (; !secrets::isPrime(number) && number <= maxValue; number += 2);
 
-		bool isPrime = false;
-		for (uint64_t i = 3; (i * i) <= number; i += 2) {
-			if (number % i == 0) {
-				number += 2;
-				i = 3;
+		return number == minValue ? 0 : number;
+	}
+
+	uint64_t secrets::isPrime(uint64_t number) {
+		bool isPrime = number & 0b1 || number == 2; // Odd number or 2
+
+		// Check if number is 2, 3, 5 or 7
+		// And early return
+		if (isPrime && number > 1 && number < 8) {
+			return true;
+		}
+		
+		// Iterate through all odd numbers
+		// Stops when the square of the number is greater than the number
+		for (uint64_t i = 3; isPrime && (i * i) <= number; i += 2) {
+
+			// Check if number is divisible by i
+			// i is always odd
+			isPrime &= (number % i != 0);
+		}
+
+		return isPrime && number > 1;
+	}
+
+	// Test for performance
+	uint64_t secrets::isPrimeBig(uint64_t number) {
+		bool isPrime = number & 0b1;
+
+		for (uint64_t i = 3; isPrime && (i * i) <= number; i += 2) {
+			if (!secrets::isPrime(i)) {
 				continue;
 			}
-			else if (i * i >= number) {
-				isPrime = true;
-				break;
-			}
+
+			isPrime &= (number % i != 0);
 		}
 
-		if (isPrime && number >= minValue && number <= maxValue) {
-			prime = number;
-		}
-
-		return prime == minValue ? 0 : prime;
+		return isPrime;
 	}
 
 }

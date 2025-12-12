@@ -82,14 +82,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\antivirus\Documents\SFML-2.6.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\cpp\ExternLibs\SFML-2.6.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\antivirus\Documents\SFML-2.6.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\dev\cpp\ExternLibs\SFML-2.6.1\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;gdi32.lib;freetype.lib;winmm.lib;ws2_32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-network-s-d.lib;sfml-graphics-s-d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -101,7 +101,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\antivirus\Documents\SFML-2.6.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\cpp\ExternLibs\SFML-2.6.1\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -110,7 +110,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\antivirus\Documents\SFML-2.6.1\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\dev\cpp\ExternLibs\SFML-2.6.1\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;gdi32.lib;freetype.lib;winmm.lib;ws2_32.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-network-s.lib;sfml-graphics-s.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -143,7 +143,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="abstract_client.cpp" />
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="base_client_decorator.cpp" />
     <ClCompile Include="chat.cpp" />
     <ClCompile Include="client.cpp" />
     <ClCompile Include="CppCLR_WinFormsProject.cpp" />
@@ -153,10 +155,14 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="secrets.cpp" />
     <ClCompile Include="server.cpp" />
+    <ClCompile Include="simple_client.cpp" />
+    <ClCompile Include="simple_server.cpp" />
     <ClCompile Include="user.cpp" />
     <ClCompile Include="WindowChat.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="abstract_client.hpp" />
+    <ClInclude Include="base_client_decorator.hpp" />
     <ClInclude Include="chat.hpp" />
     <ClInclude Include="client.hpp" />
     <ClInclude Include="Form1.h">
@@ -167,7 +173,10 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="secrets.hpp" />
     <ClInclude Include="server.hpp" />
+    <ClInclude Include="simple_client.hpp" />
+    <ClInclude Include="simple_server.hpp" />
     <ClInclude Include="user.hpp" />
+    <ClInclude Include="utils.hpp" />
     <ClInclude Include="WindowChat.h">
       <FileType>CppForm</FileType>
     </ClInclude>

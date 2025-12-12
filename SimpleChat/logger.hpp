@@ -85,8 +85,8 @@ namespace dsc {
 			severity level = logger::INFO;
 		public:
 			builder add(std::string);
-			builder setSender(sender);
-			builder setSeverity(severity);
+			builder sender(sender);
+			builder severity(severity);
 			bool log();
 			std::string getMessage();
 			std::string getFormatedMessage();

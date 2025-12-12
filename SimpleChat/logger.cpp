@@ -201,11 +201,11 @@ namespace dsc {
 		this->message += message;
 		return *this;
 	}
-	logger::builder logger::builder::setSender(logger::sender who) {
+	logger::builder logger::builder::sender(logger::sender who) {
 		this->who = who;
 		return *this;
 	}
-	logger::builder logger::builder::setSeverity(logger::severity level) {
+	logger::builder logger::builder::severity(logger::severity level) {
 		this->level = level;
 		return *this;
 	}

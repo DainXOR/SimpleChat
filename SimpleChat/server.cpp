@@ -16,19 +16,18 @@ namespace dsc {
 
         this->modulus = secrets::generatePrimeNumber(1ull << 31ull);
         this->generator = secrets::generatePrimeNumber(1ull << 16ull);
-
         this->privateKey = secrets::generatePrimeNumber(1ull << 31ull);
-
+        this->publicKey = secrets::modularExponentiation(generator, privateKey, modulus);
 
         std::thread clientThread(&server::getNewClients, this);
         std::thread packetThread(&server::receivePackets, this);
-        std::thread consoleThread(&server::listenConsole, this);
         std::thread requestThread(&server::manageRequests, this);
+        std::thread consoleThread(&server::listenConsole, this);
 
         clientThread.detach();
         packetThread.detach();
-        consoleThread.detach();
         requestThread.detach();
+        consoleThread.detach();
     }
 
     std::string server::getIpAddress() const {
@@ -60,6 +59,16 @@ namespace dsc {
             newClient->setBlocking(false);
             requests.push({ newClient, CONNECT, sf::Packet() });
 
+            logger::buildMessage()
+				.add("Client ")
+				.add(newClient->getRemoteAddress().toString())
+				.add(":")
+				.add(std::to_string(newClient->getRemotePort()))
+				.add(" connected, adding")
+				.sender(logger::SERVER)
+				.severity(logger::DEBUG)
+				.log();
+
             sf::sleep(sf::milliseconds(250));
         }
     }
@@ -70,8 +79,8 @@ namespace dsc {
             .add(":")
             .add(std::to_string(socketPointer->getRemotePort()))
             .add(" disconnected, removing")
-            .setSender(logger::SERVER)
-            .setSeverity(logger::DEBUG)
+            .sender(logger::SERVER)
+            .severity(logger::DEBUG)
             .log();
 
         if (pos < 0) {
@@ -89,6 +98,29 @@ namespace dsc {
         clients.erase(clients.begin() + pos);
     }
     
+    std::string server::encryptMessage(sf::TcpSocket * user, std::string & msg) const {
+        uint64_t key = 0;
+        for (auto &[client, sharedKey] : clients) {
+            if (client == user) {
+				key = sharedKey;
+				break;
+			}
+		}
+
+        return secrets::encrypt(msg, secrets::cypher::CAESAR, std::to_string(key));
+    }
+
+    std::string server::decryptMessage(sf::TcpSocket * user, std::string & msg) const {
+        uint64_t key = 0;
+        for (auto &[client, sharedKey] : clients) {
+			if (client == user) {
+                key = sharedKey;
+            }
+        }
+
+        return secrets::decrypt(msg, secrets::cypher::CAESAR, std::to_string(key));
+    }
+
     void server::broadcastPacket(sf::Packet &packet, sf::IpAddress excludeAddress, sf::Uint16 port) {
         for (auto &client : clients) {
             if (client.first->getRemoteAddress() != excludeAddress || client.first->getRemotePort() != port) {
@@ -117,8 +149,8 @@ namespace dsc {
                     .add(std::to_string(client->getRemotePort()))
                     .add(" Status Code: ")
                     .add(std::to_string(sendStatus))
-                    .setSender(logger::SERVER)
-                    .setSeverity(logger::DEBUG)
+                    .sender(logger::SERVER)
+                    .severity(logger::DEBUG)
                     .log();
                 logger::debug("Resending packet...", logger::SERVER);
                 return broadcastPacketBack(packet, client, attemps + 1);
@@ -134,8 +166,8 @@ namespace dsc {
                     .add(std::to_string(client->getRemotePort()))
                     .add(" Status Code: ")
                     .add(std::to_string(sendStatus))
-                    .setSender(logger::SERVER)
-                    .setSeverity(logger::DEBUG)
+                    .sender(logger::SERVER)
+                    .severity(logger::DEBUG)
                     .log();
 
                 return false;
@@ -147,8 +179,8 @@ namespace dsc {
             logger::buildMessage()
 				.add("Fail client: ")
 				.add(client->getRemoteAddress().toString())
-				.setSender(logger::SERVER)
-				.setSeverity(logger::DEBUG)
+				.sender(logger::SERVER)
+				.severity(logger::DEBUG)
 				.log();
         }
     }
@@ -172,22 +204,15 @@ namespace dsc {
             return true;
         }
         if (packet.getDataSize() > 0) {
-            std::string receivedMessage;
-            packet >> receivedMessage;
-
-            bool isCommand = receivedMessage[0] == '/';
-            this->requests.push({ client, isCommand ? SEND_COMMAND : SEND_PACKET , sf::Packet() << receivedMessage});
+            this->requests.push({ client, PROCESS_PACKET, packet});
 
             logger::buildMessage()
                 .add("Received message from ")
                 .add(client->getRemoteAddress().toString())
                 .add(":")
                 .add(std::to_string(client->getRemotePort()))
-                .add(" '")
-                .add(receivedMessage)
-                .add("'")
-                .setSender(logger::SERVER)
-                .setSeverity(logger::VERBOSE)
+                .sender(logger::SERVER)
+                .severity(logger::VERBOSE)
                 .log();
 
             return true;
@@ -224,8 +249,8 @@ namespace dsc {
                     .add(" packets in ")
                     .add(std::to_string(float(elapsedTime) / 1000.f))
                     .add(" seconds")
-                    .setSender(logger::SERVER)
-                    .setSeverity(logger::VERBOSE)
+                    .sender(logger::SERVER)
+                    .severity(logger::VERBOSE)
                     .log();
 
 				iterator = 0;
@@ -243,18 +268,17 @@ namespace dsc {
 				continue;
 			}
 
-            auto &[socket, request, packet] = requests.front();
+            auto &[socket, type, packet] = requests.front();
             requests.pop();
 
-            switch (request) {
-                case CONNECT:
-                {
+            switch (type) {
+                case CONNECT: {
                     if (isIpAddressBanned(socket->getRemoteAddress())) {
                         packet.clear();
                         packet << logger::buildMessage()
 							.add("You are banned from this server")
-							.setSender(logger::SERVER)
-							.setSeverity(logger::USER_HIGH)
+							.sender(logger::SERVER)
+							.severity(logger::USER_HIGH)
 							.getMessage();
 
                         broadcastPacketBack(packet, socket);
@@ -265,78 +289,202 @@ namespace dsc {
                             .add(":")
                             .add(std::to_string(socket->getRemotePort()))
                             .add(" tried to connect")
-                            .setSender(logger::SERVER)
-                            .setSeverity(logger::INFO)
+                            .sender(logger::SERVER)
+                            .severity(logger::INFO)
                             .log();
 
                         socket->disconnect();
                         delete (socket);
                     }
                     else {
+                        packet.clear();
+                        packet << "dh: " + std::to_string(this->modulus) + 
+                                    "|" + std::to_string(this->generator) + 
+                                    "|" + std::to_string(this->publicKey);
 
+                        broadcastPacketBack(packet, socket);
 
                         clients.push_back({ socket, 0 });
-
-                        logger::buildMessage()
-                            .add("Added client ")
-                            .add(socket->getRemoteAddress().toString())
-                            .add(":")
-                            .add(std::to_string(socket->getRemotePort()))
-                            .add(" on slot ")
-                            .add(std::to_string(clients.size()))
-                            .setSender(logger::SERVER)
-                            .setSeverity(logger::DEBUG)
-                            .log();
                     }
                     break;
                 }
-                case DISCONNECT:
-                {
+                case KEY_EXCHANGE: {
+                    std::string receivedMessage;
+					packet >> receivedMessage;
+                    receivedMessage.erase(0, 3);
+
+					uint64_t publicKey = std::stoull(receivedMessage);
+					uint64_t sharedKey = secrets::modularExponentiation(publicKey, privateKey, modulus);
+
+                    for (auto &[client, key] : clients) {
+                        if (client == socket) {
+							key = sharedKey;
+							break;
+						}
+					}
+
+					packet.clear();
+					packet << "hs:request";
+					broadcastPacketBack(packet, socket);
+
+                    /*
+					logger::buildMessage()
+                        .add("User public key: ")
+                        .add(std::to_string(publicKey))
+                        .sender(logger::SERVER)
+                        .severity(logger::DEBUG)
+                        .log();
+                    logger::buildMessage()
+						.add("Shared key: ")
+						.add(std::to_string(sharedKey))
+						.sender(logger::SERVER)
+						.severity(logger::DEBUG)
+						.log();
+                    */
+					break;
+                }
+                case HANDSHAKE: {
+					std::string receivedMessage;
+                    packet >> receivedMessage;
+
+                    receivedMessage.erase(0, 3);
+                    std::string decryptedMessage = this->decryptMessage(socket, receivedMessage);
+
+                    std::string sharedKey = 0;
+                    for (auto &[client, key] : clients) {
+                        if (client == socket) {
+                            sharedKey = std::to_string(key);
+                        }
+                    }
+
+                    if (decryptedMessage == sharedKey) {
+                        packet.clear();
+                        packet << "hs:success";
+                        broadcastPacketBack(packet, socket);
+
+                        this->clients.push_back({ socket, std::stoull(sharedKey) });
+
+						logger::buildMessage()
+							.add("Handshake successful with client ")
+							.add(socket->getRemoteAddress().toString())
+							.add(":")
+							.add(std::to_string(socket->getRemotePort()))
+							.sender(logger::SERVER)
+							.severity(logger::DEBUG)
+							.log();
+					}
+                    else {
+                        packet.clear();
+                        packet << "hs:fail";
+                        broadcastPacketBack(packet, socket);
+
+						logger::buildMessage()
+							.add("Handshake failed with client ")
+							.add(socket->getRemoteAddress().toString())
+							.add(":")
+							.add(std::to_string(socket->getRemotePort()))
+							.sender(logger::SERVER)
+							.severity(logger::DEBUG)
+							.log();
+					}
+
+					break;
+                }
+                case DISCONNECT: {
                     sendDisconnectMessage(socket);
                     disconnectClient(socket, clients.size());
                     break;
                 }
-                case SEND_PACKET:
-                {
-                    if (this->onReceivePacket(packet, socket)) {
-                        std::string receivedMessage;
-                        packet >> receivedMessage;
-                        packet.clear();
-                        packet  << receivedMessage 
-                                << socket->getRemoteAddress().toString() 
-                                << socket->getRemotePort();
+                case PROCESS_PACKET: {
+                    if (packet.getDataSize() < 1) {
+						logger::warning("Received empty packet", logger::SERVER);
+						break;
+					}
 
-                        broadcastPacket(packet, socket->getRemoteAddress(), socket->getRemotePort());
+					std::string receivedMessage;
+                    request req = { socket, HANDLE_PACKET, packet };
+
+					packet >> receivedMessage;
+
+                    if (receivedMessage.find("dh:") == 0) {
+                        req.type = KEY_EXCHANGE;
+                        requests.push(req);
                     }
+                    else if (receivedMessage.find("hs:") == 0) {
+                        req.type = HANDSHAKE;
+                        requests.push(req);
+                    }
+                    else {
+                        logger::buildMessage()
+                            .add("Received message from ")
+                            .add(socket->getRemoteAddress().toString())
+                            .add(":")
+                            .add(std::to_string(socket->getRemotePort()))
+                            .add(" - ")
+                            .add(receivedMessage)
+                            .sender(logger::SERVER)
+                            .severity(logger::VERBOSE)
+                            .log();
+
+                        requests.push(req);
+                    }
+
+                    break;
+                }
+                case HANDLE_PACKET: {
+                    request req = { socket, SEND_PACKET, packet };
+
+                    std::string receivedMessage;
+                    packet >> receivedMessage;
+                    receivedMessage = this->decryptMessage(socket, receivedMessage);
+
+                    req.type = receivedMessage[0] == '/' ? SEND_COMMAND : SEND_PACKET;
+
+                    this->requests.push(req);
+                    break;
+                }
+                case SEND_PACKET: {
+                    std::string receivedMessage;
+                    packet >> receivedMessage;
+
+                    for (auto &[client, clientKey] : this->clients) {
+                        if (client == socket) {
+							continue;
+						}
+
+						std::string message = this->encryptMessage(client, receivedMessage);
+                        message = this->decryptMessage(client, message);
+                        broadcastPacketBack(sf::Packet() << message, client);
+					}
+
 					break;
 				}
                 case SEND_COMMAND: {
-                    std::string command;
-                    packet >> command;
-
                     if (!isAdmin(socket)) {
 						logger::buildMessage()
 							.add("Client ")
 							.add(socket->getRemoteAddress().toString())
 							.add(":")
 							.add(std::to_string(socket->getRemotePort()))
-							.add(" tried to send a command ")
-                            .add("'" + command + "'")
-							.setSender(logger::SERVER)
-							.setSeverity(logger::INFO)
+							.add(" tried to send a command")
+							.sender(logger::SERVER)
+							.severity(logger::INFO)
 							.log();
 
                         sf::Packet packet;
                         packet << logger::buildMessage()
                             .add("Only administrators can send commands")
-                            .setSender(logger::SERVER)
-                            .setSeverity(logger::USER_HIGH)
+                            .sender(logger::SERVER)
+                            .severity(logger::USER_HIGH)
                             .getMessage();
 
 						broadcastPacketBack(packet, socket);
 						break;
                     }
 
+                    std::string command;
+                    packet >> command;
+                    command = this->decryptMessage(socket, command);
                     this->sendCommand(command);
 
                     logger::buildMessage()
@@ -346,16 +494,16 @@ namespace dsc {
                         .add(std::to_string(socket->getRemotePort()))
                         .add(" sent command ")
 						.add("'" + command + "'")
-						.setSender(logger::SERVER)
-						.setSeverity(logger::DEBUG)
+						.sender(logger::SERVER)
+						.severity(logger::DEBUG)
 						.log();
 
                     std::string response = logger::buildMessage()
                         .add("Command ")
                         .add("'" + command + "'")
                         .add(" executed")
-                        .setSender(logger::SERVER)
-                        .setSeverity(logger::USER_MEDIUM)
+                        .sender(logger::SERVER)
+                        .severity(logger::USER_MEDIUM)
                         .getMessage();
 
                     packet.clear();
@@ -370,8 +518,8 @@ namespace dsc {
                     logger::error("Unknown request", logger::SERVER);
                     std::string response = logger::buildMessage()
                         .add("Unknown request")
-                        .setSender(logger::SERVER)
-                        .setSeverity(logger::ERROR)
+                        .sender(logger::SERVER)
+                        .severity(logger::ERROR)
                         .getMessage();
 
                     packet.clear();
@@ -439,8 +587,8 @@ namespace dsc {
 						.add(clients[i].first->getRemoteAddress().toString())
 						.add(":")
 						.add(std::to_string(clients[i].first->getRemotePort()))
-						.setSender(logger::SERVER)
-						.setSeverity(logger::USER_MEDIUM)
+						.sender(logger::SERVER)
+						.severity(logger::USER_MEDIUM)
 						.log();
                 }
             }
@@ -524,8 +672,8 @@ namespace dsc {
                         std::string response = logger::buildMessage()
                             .add("Banned IP address ")
                             .add(address.toString())
-							.setSender(logger::SERVER)
-							.setSeverity(logger::USER_MEDIUM)
+							.sender(logger::SERVER)
+							.severity(logger::USER_MEDIUM)
 							.getMessage();
 
                         broadcastPacketBack(sf::Packet() << response, clients[i].first);
@@ -563,8 +711,8 @@ namespace dsc {
 				.add("IP address ")
 				.add(ip.toString())
 				.add(" is already banned")
-				.setSender(logger::SERVER)
-				.setSeverity(logger::DEBUG)
+				.sender(logger::SERVER)
+				.severity(logger::DEBUG)
 				.log();
 			return false;
 		}
@@ -582,8 +730,8 @@ namespace dsc {
             if (socket != nullptr) {
                 std::string message = logger::buildMessage()
 					.add("You are now banned from this server")
-					.setSender(logger::SERVER)
-					.setSeverity(logger::USER_HIGH)
+					.sender(logger::SERVER)
+					.severity(logger::USER_HIGH)
 					.getMessage();
 
 				sf::Packet packet;
@@ -595,8 +743,8 @@ namespace dsc {
             logger::buildMessage()
                 .add("Banned IP address ")
                 .add(ip.toString())
-                .setSender(logger::SERVER)
-                .setSeverity(logger::USER_MEDIUM)
+                .sender(logger::SERVER)
+                .severity(logger::USER_MEDIUM)
                 .log();
 
 			return true;
@@ -608,8 +756,8 @@ namespace dsc {
                 .add("IP address ")
 				.add(ip.toString())
 				.add(" is not banned")
-				.setSender(logger::SERVER)
-				.setSeverity(logger::DEBUG)
+				.sender(logger::SERVER)
+				.severity(logger::DEBUG)
 				.log();
             return false;
         }
@@ -620,8 +768,8 @@ namespace dsc {
 				logger::buildMessage()
 					.add("Unbanned IP address ")
 					.add(ip.toString())
-					.setSender(logger::SERVER)
-					.setSeverity(logger::USER_MEDIUM)
+					.sender(logger::SERVER)
+					.severity(logger::USER_MEDIUM)
 					.log();
 				return true;
 			}
@@ -643,8 +791,8 @@ namespace dsc {
 				.add(":")
 				.add(std::to_string(user->getRemotePort()))
 				.add(" is already an admin")
-				.setSender(logger::SERVER)
-				.setSeverity(logger::USER_MEDIUM)
+				.sender(logger::SERVER)
+				.severity(logger::USER_MEDIUM)
 				.log();
 
             return false;
@@ -657,8 +805,8 @@ namespace dsc {
                 .add(":")
                 .add(std::to_string(user->getRemotePort()))
                 .add(" is now an admin")
-                .setSender(logger::SERVER)
-                .setSeverity(logger::USER_MEDIUM)
+                .sender(logger::SERVER)
+                .severity(logger::USER_MEDIUM)
                 .log();
 
             return true;
@@ -672,8 +820,8 @@ namespace dsc {
 				.add(":")
 				.add(std::to_string(user->getRemotePort()))
 				.add(" is not an admin")
-				.setSender(logger::SERVER)
-				.setSeverity(logger::USER_MEDIUM)
+				.sender(logger::SERVER)
+				.severity(logger::USER_MEDIUM)
 				.log();
 
             return false;
@@ -688,8 +836,8 @@ namespace dsc {
 						.add(":")
 						.add(std::to_string(user->getRemotePort()))
 						.add(" is no longer an admin")
-						.setSender(logger::SERVER)
-						.setSeverity(logger::USER_MEDIUM)
+						.sender(logger::SERVER)
+						.severity(logger::USER_MEDIUM)
 						.log();
 
 					return true;
@@ -736,8 +884,8 @@ namespace dsc {
                 .add(std::to_string(listenPort))
                 .add(" Status Code: ")
                 .add(std::to_string(listenStatus))
-                .setSender(logger::SERVER)
-                .setSeverity(logger::ERROR)
+                .sender(logger::SERVER)
+                .severity(logger::ERROR)
                 .log();
             logger::user_m("Server failed to start", logger::SERVER);
             return false;

@@ -18,6 +18,10 @@ namespace dsc {
         enum request_type {
 			DISCONNECT,
             CONNECT,
+            KEY_EXCHANGE,
+            HANDSHAKE,
+            PROCESS_PACKET,
+            HANDLE_PACKET,
 			SEND_PACKET,
             SEND_COMMAND
 		};
@@ -59,6 +63,9 @@ namespace dsc {
         void disconnectClient(sf::TcpSocket *, int32_t = -1);
 
         bool getPacket(sf::TcpSocket *, size_t);
+
+        std::string encryptMessage(sf::TcpSocket *, std::string &) const;
+        std::string decryptMessage(sf::TcpSocket *, std::string &) const;
 
         void broadcastPacket(sf::Packet &, sf::IpAddress, sf::Uint16);
         bool broadcastPacketBack(sf::Packet &, sf::TcpSocket *, uint8_t = 0);
